@@ -110,7 +110,8 @@ var geoadmin = L.tileLayer.wms("http://wms.geo.admin.ch/", {
 				+ (props ?
 					'<b>' + props.name + '</b><br />' 
 					+ (getValueForCanton(props.abbr) + '')
-					+ ' ' + selectedMode + ' en 2011'
+					+ ' ' + getTextForCanton(props.abbr) 
+					+ ' en 2011'
 				: 'Hover over a canton');
 		};
 
@@ -150,9 +151,20 @@ function getValueForCanton(abbr) {
 		case 'canton':
 			$('.btn-mode.active').removeClass('active');
 			$(".btn-mode[data-mode='entrants']").addClass('active');
-			return columndata[selectedCanton][i];
+			var selectedAbbr = columndata.Canton[selectedCanton];
+			return columndata[selectedAbbr][i];
 	}
 	return -1;
+}
+
+function getTextForCanton(abbr) {
+	if (selectedMode != 'canton') {
+		return selectedMode;
+	} else {
+		return abbr == columndata.Canton[selectedCanton] ?
+			'entrants' :
+			'entrants depuis ' + columndata.Nom[selectedCanton];
+	}
 }
 
 function setLayerMode(mode) {
@@ -210,7 +222,8 @@ function setLayerMode(mode) {
 		}
 
 		function zoomToFeature(e) {
-			selectedCanton = e.target.feature.properties.abbr;
+			selectedCanton = columndata.Canton
+				.indexOf(e.target.feature.properties.abbr);
 			setLayerMode('canton');
 			map.fitBounds(e.target.getBounds());
 		}

@@ -42,10 +42,18 @@
 			margin-right: 8px;
 			opacity: 0.7;
 		}
+		.btn-mode {
+			position: relative;
+			top: -2.1em;
+		}
+		.btn-mode.active { font-weight:bold; }
 	</style>
 </head>
 <body>
 	<div id="map"></div>
+
+	<button class="btn-mode active" data-mode="entrants">Entrants</button>
+	<button class="btn-mode" data-mode="sortants">Sortants</button>
 
 	<script src="lib/leaflet-0.6.4/leaflet.js"></script>
 	<script src="lib/leaflet-0.6.4/proj4js-compressed.js"></script>
@@ -55,6 +63,15 @@
 	<script type="text/javascript">
 
 var geojson, columndata;
+
+var Modes = [ 'entrants', 'sortants', 'canton' ];
+var selectedMode = Modes[0];
+var selectedCanton = null;
+
+$('.btn-mode').click(function() { 
+	$('.btn-mode.active').removeClass('active');
+	setLayerMode($(this).addClass('active').attr('data-mode')); 
+});
 
 // Swiss map projection
 var crs = new L.Proj.CRS('EPSG:21781',
@@ -92,8 +109,8 @@ var geoadmin = L.tileLayer.wms("http://wms.geo.admin.ch/", {
 			this._div.innerHTML = '' //'<h4>Infobubble</h4>' 
 				+ (props ?
 					'<b>' + props.name + '</b><br />' 
-					+ getEntrantsForCanton(props.abbr) 
-					+ ' entrants en 2011'
+					+ (getValueForCanton(props.abbr) + '')
+					+ ' ' + selectedMode + ' en 2011'
 				: 'Hover over a canton');
 		};
 
@@ -113,22 +130,39 @@ $.getJSON('data/swiss-cantons.geo.json',
 			onEachFeature: onEachFeature
 		}).addTo(map);
 
-		map.attributionControl.addAttribution('Data &copy; <a href="http://bfs.admin.ch/">BFS</a>');
+		map.attributionControl.addAttribution(
+			'Data &copy; <a href="http://bfs.admin.ch/">BFS</a>');
 	});
 
-function getEntrantsForCanton(abbr) {
+function getValueForCanton(abbr) {
 	var data = columndata[abbr];
 	if (data === undefined) return;
-	for (var i = 0; i < columndata.Canton.length; i++) {
-		if (columndata.Canton[i] == abbr) {
-			return columndata.Entrants[i];
-		}
+	var ix = null;
+	for (var i = 0; i < columndata.Canton.length && ix == null; i++) {
+		if (columndata.Canton[i] == abbr) { ix = i }
 	}
+	if (ix == null) return -1;
+	switch(selectedMode) {
+		case 'entrants':
+			return columndata.Entrants[i];
+		case 'sortants':
+			return columndata.Sortants[i];
+		case 'canton':
+			$('.btn-mode.active').removeClass('active');
+			$(".btn-mode[data-mode='entrants']").addClass('active');
+			return columndata[selectedCanton][i];
+	}
+	return -1;
+}
+
+function setLayerMode(mode) {
+	selectedMode = mode;
+	geojson.eachLayer(function(l){ geojson.resetStyle(l); });
 }
 
 		// get color depending on population density value
 		var DATA_GRADES = 
-			[0, 1000, 2000, 5000, 10000, 20000, 50000, 100000];
+			[0, 250, 500, 1000, 5000, 25000, 50000, 100000];
 		function getColor(d) {
 			return d > DATA_GRADES[7] ? '#800026' :
 			       d > DATA_GRADES[6] ? '#BD0026' :
@@ -141,6 +175,7 @@ function getEntrantsForCanton(abbr) {
 		}
 
 		function style(feature) {
+			var id = feature.properties.abbr;
 			return {
 				weight: 2,
 				opacity: 1,
@@ -148,11 +183,7 @@ function getEntrantsForCanton(abbr) {
 				//dashArray: '3',
 				fillOpacity: 0.7,
 				fillColor: //'#e99' 
-					getColor(
-						getEntrantsForCanton(
-							feature.properties.abbr
-						)
-					)
+					getColor(getValueForCanton(id))
 			};
 		}
 
@@ -179,6 +210,8 @@ function getEntrantsForCanton(abbr) {
 		}
 
 		function zoomToFeature(e) {
+			selectedCanton = e.target.feature.properties.abbr;
+			setLayerMode('canton');
 			map.fitBounds(e.target.getBounds());
 		}
 

@@ -98,15 +98,17 @@ function updateValueForCanton(obj, abbr, name) {
 	var entrants = columndata.Entrants[ix];
 	var sortants = columndata.Sortants[ix];
 	var locals   = columndata[abbr][ix];
-	
-	columndata[abbr][columndata[abbr].length-1];
+
+	var p_local 	= locals / entrants;
+	var p_remote 	= (sortants-locals) / sortants;
+	var p_visitors 	= (entrants-locals) / entrants;
 
 	$('.name', obj).html( name );
 	$('.patients', obj).html( entrants );
 	$('.hospitals', obj).html( sortants );
-	$('.percent-local', obj).html( parseInt(100 * locals / entrants) );
-	$('.percent-remote', obj).html( "?" );
-	$('.percent-visitors', obj).html( parseInt(100 * (entrants-locals) / entrants) );
+	$('.percent-local', obj).html( parseInt(1000 * p_local) / 10 );
+	$('.percent-remote', obj).html( parseInt(1000 * p_remote) / 10 );
+	$('.percent-visitors', obj).html( parseInt(1000 * p_visitors) / 10 );
 
 	return true;
 }

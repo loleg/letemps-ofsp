@@ -1,10 +1,5 @@
 var geojson, columndata;
-var selectedCanton = null;
-
-$('.btn-mode').click(function() { 
-	$('.btn-mode.active').removeClass('active');
-	setLayerMode($(this).addClass('active').attr('data-mode')); 
-});
+var selectedCanton = null, selectedFeature = null;
 
 // Swiss map projection
 var crs = new L.Proj.CRS('EPSG:21781',
@@ -132,11 +127,6 @@ function getIxCanton(abbr) {
 	return null;
 }
 
-function setLayerMode(mode) {
-	selectedMode = mode;
-	geojson.eachLayer(function(l){ geojson.resetStyle(l); });
-}
-
 // get color depending on population density value
 var DATA_GRADES = 
 	[1000, 5000, 25000, 50000, 100000];
@@ -165,6 +155,7 @@ function style(feature) {
 }
 
 function highlightFeature(e) {
+	if (selectedCanton != null) return;
 	var layer = e.target;
 
 	layer.setStyle({
@@ -182,6 +173,7 @@ function highlightFeature(e) {
 }
 
 function resetHighlight(e) {
+	if (selectedCanton != null) return;
 	geojson.resetStyle(e.target);
 	info.update();
 }
@@ -189,9 +181,16 @@ function resetHighlight(e) {
 function zoomToFeature(e) {
 	var s = columndata.Canton
 			.indexOf(e.target.feature.properties.abbr);
-	selectedCanton = (s == selectedCanton) ? null : s;
-	setLayerMode('canton');
-	map.fitBounds(e.target.getBounds());
+	if (s == selectedCanton) {
+		selectedCanton = null;
+		map.setView([46.6, 8.2], 7.5);
+	} else {
+		selectedCanton = (selectedCanton == null) ? s : null;
+		if (selectedFeature != null)
+			geojson.resetStyle(selectedFeature);
+		selectedFeature = e.target;
+		map.fitBounds(e.target.getBounds());
+	}
 }
 
 function onEachFeature(feature, layer) {

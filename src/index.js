@@ -1,6 +1,4 @@
-
 var geojson, columndata;
-
 var selectedCanton = null;
 
 $('.btn-mode').click(function() { 
@@ -18,73 +16,79 @@ var crs = new L.Proj.CRS('EPSG:21781',
   }
 );
 
-var map = L.map('map').setView([46.6, 8.2], 7);
+// Main map object
+var map = L.map('map').setView([46.6, 8.2], 7.5);
 
-/*
-var geoadmin = L.tileLayer.wms("http://wms.geo.admin.ch/", {
-    layers: 'ch.swisstopo.pixelkarte-farbe-pk1000.noscale',
-    format: 'image/jpeg',
-    transparent: false,
-    crs: crs,
-    attribution: '&copy; ' +
-          '<a href="http://www.geo.admin.ch/internet/geoportal/en/home.html">' +
-          'Pixelmap 1:1000000 / geo.admin.ch</a>'
-}).addTo(map);
-*/
+//addGeoAdmin();
 
-		// control that shows state info on hover
-		var info = L.control();
-
-		info.onAdd = function (map) {
-			this._div = L.DomUtil.create('div', 'info');
-			this._infobox = $('.infobox.canton').hide();
-			this._blankbox = $('.infobox.blank').show();
-			this.update();
-			return this._div;
-		};
-
-		info.update = function (props) {
-			$('.infobox.canton div').css('border-left', '2em solid white');
-			if (props === undefined) {
-				$('.infobox.blank').show();
-				this._infobox.hide();
-				return;
-			}
-			// colourful
-			$('.infobox.canton .patients').css('border-left', 
-				'2em solid ' + getColor(getValueForCanton(props.abbr)));
-			// update legend
-			updateValueForCanton(this._infobox, props.abbr, props.name);
-			this._blankbox.hide();
-			this._infobox.show();
-			// update overlay
-			/*
-			this._div.innerHTML = (props ?
-				'<b>' + props.name + '</b><br />'
-				+ (getValueForCanton(props.abbr) + '')
-				: '...');
-			*/
-		};
-
-		info.addTo(map);
-
-
+// Load data files
 $.getJSON('data/Entrees_Sorties_Hospitalisations_Suisse_2011.json', function(data) {
-		//console.log(data);
-		columndata = data;
-	});
+	
+	//console.log(data);
+	columndata = data;
 
-$.getJSON('data/swiss-cantons.geo.json', 
-	function(data) {
+	// Load canton borders
+	$.getJSON('data/swiss-cantons.geo.json', 
+		function(data) {
 
-		geojson = L.geoJson(data, {
-			style: style,
-			onEachFeature: onEachFeature
-		}).addTo(map);
+			geojson = L.geoJson(data, {
+				style: style,
+				onEachFeature: onEachFeature
+			}).addTo(map);
 
-		map.attributionControl.addAttribution(
-			'Data &copy; <a href="http://bfs.admin.ch/">BFS</a>');
-	});
+			map.attributionControl.addAttribution(
+				'Données &copy; 2013 <a href="http://www.bfs.admin.ch/bfs/portal/fr/index/themen/14/04/01/data/01/05.html" target="_blank">Office fédéral de la statistique</a>');
+		});
+
+});
+
+// control that shows state info on hover
+var info = L.control();
+
+info.onAdd = function (map) {
+	this._div = L.DomUtil.create('div', 'info');
+	this._infobox = $('.infobox.canton').hide();
+	this._blankbox = $('.infobox.blank').show();
+	this.update();
+	return this._div;
+};
+
+info.update = function (props) {
+	$('.infobox.canton div').css('border-left', '2em solid white');
+	if (props === undefined) {
+		$('.infobox.blank').show();
+		this._infobox.hide();
+		return;
+	}
+	// colourful
+	$('.infobox.canton .patients').css('border-left', 
+		'2em solid ' + getColor(getValueForCanton(props.abbr)));
+	// update legend
+	updateValueForCanton(this._infobox, props.abbr, props.name);
+	this._blankbox.hide();
+	this._infobox.show();
+	// update overlay
+	/*
+	this._div.innerHTML = (props ?
+		'<b>' + props.name + '</b><br />'
+		+ (getValueForCanton(props.abbr) + '')
+		: '...');
+	*/
+};
+
+info.addTo(map);
+
+function initGeoAdmin(map) {
+	var geoadmin = L.tileLayer.wms("http://wms.geo.admin.ch/", {
+	    layers: 'ch.swisstopo.pixelkarte-farbe-pk1000.noscale',
+	    format: 'image/jpeg',
+	    transparent: false,
+	    crs: crs,
+	    attribution: '&copy; ' +
+	          '<a href="http://www.geo.admin.ch/internet/geoportal/en/home.html">' +
+	          'Pixelmap 1:1000000 / geo.admin.ch</a>'
+	}).addTo(map);
+}
 
 function getValueForCanton(abbr) {
 

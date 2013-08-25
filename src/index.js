@@ -20,6 +20,7 @@ var crs = new L.Proj.CRS('EPSG:21781',
 
 var map = L.map('map').setView([46.6, 8.2], 7);
 
+/*
 var geoadmin = L.tileLayer.wms("http://wms.geo.admin.ch/", {
     layers: 'ch.swisstopo.pixelkarte-farbe-pk1000.noscale',
     format: 'image/jpeg',
@@ -29,7 +30,7 @@ var geoadmin = L.tileLayer.wms("http://wms.geo.admin.ch/", {
           '<a href="http://www.geo.admin.ch/internet/geoportal/en/home.html">' +
           'Pixelmap 1:1000000 / geo.admin.ch</a>'
 }).addTo(map);
-
+*/
 
 		// control that shows state info on hover
 		var info = L.control();
@@ -96,15 +97,16 @@ function updateValueForCanton(obj, abbr, name) {
 	var ix = getIxCanton(abbr);
 	var entrants = columndata.Entrants[ix];
 	var sortants = columndata.Sortants[ix];
-	var total = columndata[abbr][columndata[abbr].length-1];
-	var percent = parseInt(
-					100 * entrants / total
-				  );
+	var locals   = columndata[abbr][ix];
+	
+	columndata[abbr][columndata[abbr].length-1];
 
 	$('.name', obj).html( name );
 	$('.patients', obj).html( entrants );
 	$('.hospitals', obj).html( sortants );
-	$('.percent', obj).html( percent );
+	$('.percent-local', obj).html( parseInt(100 * locals / entrants) );
+	$('.percent-remote', obj).html( "?" );
+	$('.percent-visitors', obj).html( parseInt(100 * (entrants-locals) / entrants) );
 
 	return true;
 }
@@ -125,7 +127,7 @@ function setLayerMode(mode) {
 
 		// get color depending on population density value
 		var DATA_GRADES = 
-			[0, 250, 500, 1000, 5000, 25000, 50000, 100000];
+			[1000, 5000, 25000, 50000, 100000];
 		function getColor(d) {
 			return d > DATA_GRADES[7] ? '#800026' :
 			       d > DATA_GRADES[6] ? '#BD0026' :

@@ -24,17 +24,19 @@
 		<h3 class="name"></h3>
 
 		<div class="patients"></div>
-		<p>Total des hospitalisations de patients habitant le canton (dans et hors canton)</p>
+		<p>Total des hospitalisations de patients habitant le canton</p>
 
 		<div class="hospitals"></div>
 		<p>Total des hospitalisations enregistrée dans les hôpitaux du canton</p>
 
-		<div class="percent"></div>
-		<p>% des hospitalisés à 
-			<span class="name"></span> 
-			sont domiciliés à 
-			<span class="name"></span>
-		</p>
+		<div class="percent-local"></div>
+		<p>% des hospitalisés sont domiciliés à <span class="name"></span></p>
+
+		<div class="percent-remote"></div>
+		<p style="color:red">% des habitants se font hospitaliser dans un autre canton</p>
+
+		<div class="percent-visitors"></div>
+		<p>% des patients dans les hôpitaux du canton qui viennent d’ailleurs</p>
 	</div>
 
 	<script src="lib/leaflet-0.6.4/leaflet.js"></script>

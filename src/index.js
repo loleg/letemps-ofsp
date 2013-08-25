@@ -55,7 +55,12 @@ info.onAdd = function (map) {
 
 info.update = function (props) {
 	$('.infobox.canton div').css('border-left', '2em solid white');
-	if (props === undefined) {
+	if (selectedCanton != null) {
+		props = {
+			abbr: columndata.Canton[selectedCanton],
+			name: columndata.Nom[selectedCanton]
+		}
+	} else if (props === undefined) {
 		$('.infobox.blank').show();
 		this._infobox.hide();
 		return;
@@ -64,7 +69,7 @@ info.update = function (props) {
 	$('.infobox.canton .patients').css('border-left', 
 		'2em solid ' + getColor(getValueForCanton(props.abbr)));
 	// update legend
-	updateValueForCanton(this._infobox, props.abbr, props.name);
+	updateValueForCanton(this._infobox, props.abbr);
 	this._blankbox.hide();
 	this._infobox.show();
 	// update overlay
@@ -96,9 +101,10 @@ function getValueForCanton(abbr) {
 	return columndata.Entrants[ix];
 }
 
-function updateValueForCanton(obj, abbr, name) {
+function updateValueForCanton(obj, abbr) {
 
 	var ix = getIxCanton(abbr);
+	var name = columndata.Nom[ix];
 	var entrants = columndata.Entrants[ix];
 	var sortants = columndata.Sortants[ix];
 	var locals   = columndata[abbr][ix];
@@ -131,90 +137,91 @@ function setLayerMode(mode) {
 	geojson.eachLayer(function(l){ geojson.resetStyle(l); });
 }
 
-		// get color depending on population density value
-		var DATA_GRADES = 
-			[1000, 5000, 25000, 50000, 100000];
-		function getColor(d) {
-			return d > DATA_GRADES[7] ? '#800026' :
-			       d > DATA_GRADES[6] ? '#BD0026' :
-			       d > DATA_GRADES[5] ? '#E31A1C' :
-			       d > DATA_GRADES[4] ? '#FC4E2A' :
-			       d > DATA_GRADES[3] ? '#FD8D3C' :
-			       d > DATA_GRADES[2]   ? '#FEB24C' :
-			       d > DATA_GRADES[1]   ? '#FED976' :
-			                  '#FFEDA0';
-		}
+// get color depending on population density value
+var DATA_GRADES = 
+	[1000, 5000, 25000, 50000, 100000];
+function getColor(d) {
+	return d > DATA_GRADES[7] ? '#800026' :
+	       d > DATA_GRADES[6] ? '#BD0026' :
+	       d > DATA_GRADES[5] ? '#E31A1C' :
+	       d > DATA_GRADES[4] ? '#FC4E2A' :
+	       d > DATA_GRADES[3] ? '#FD8D3C' :
+	       d > DATA_GRADES[2]   ? '#FEB24C' :
+	       d > DATA_GRADES[1]   ? '#FED976' :
+	                  '#FFEDA0';
+}
 
-		function style(feature) {
-			var id = feature.properties.abbr;
-			return {
-				weight: 2,
-				opacity: 1,
-				color: '#444',
-				//dashArray: '3',
-				fillOpacity: 0.7,
-				fillColor: //'#e99' 
-					getColor(getValueForCanton(id))
-			};
-		}
+function style(feature) {
+	var id = feature.properties.abbr;
+	return {
+		weight: 2,
+		opacity: 1,
+		color: '#444',
+		//dashArray: '3',
+		fillOpacity: 0.7,
+		fillColor: //'#e99' 
+			getColor(getValueForCanton(id))
+	};
+}
 
-		function highlightFeature(e) {
-			var layer = e.target;
+function highlightFeature(e) {
+	var layer = e.target;
 
-			layer.setStyle({
-				weight: 3,
-				color: '#fff',
-				dashArray: '',
-				fillOpacity: 0.7
-			});
+	layer.setStyle({
+		weight: 3,
+		color: '#fff',
+		dashArray: '',
+		fillOpacity: 0.7
+	});
 
-			if (!L.Browser.ie && !L.Browser.opera) {
-				layer.bringToFront();
-			}
+	if (!L.Browser.ie && !L.Browser.opera) {
+		layer.bringToFront();
+	}
 
-			info.update(layer.feature.properties);
-		}
+	info.update(layer.feature.properties);
+}
 
-		function resetHighlight(e) {
-			geojson.resetStyle(e.target);
-			info.update();
-		}
+function resetHighlight(e) {
+	geojson.resetStyle(e.target);
+	info.update();
+}
 
-		function zoomToFeature(e) {
-			selectedCanton = columndata.Canton
-				.indexOf(e.target.feature.properties.abbr);
-			setLayerMode('canton');
-			map.fitBounds(e.target.getBounds());
-		}
+function zoomToFeature(e) {
+	var s = columndata.Canton
+			.indexOf(e.target.feature.properties.abbr);
+	selectedCanton = (s == selectedCanton) ? null : s;
+	setLayerMode('canton');
+	map.fitBounds(e.target.getBounds());
+}
 
-		function onEachFeature(feature, layer) {
-			layer.on({
-				mouseover: highlightFeature,
-				mouseout: resetHighlight,
-				click: zoomToFeature
-			});
-		}
+function onEachFeature(feature, layer) {
+	layer.on({
+		mouseover: highlightFeature,
+		mouseout: resetHighlight,
+		click: zoomToFeature
+	});
+}
 
-		var legend = L.control({position: 'bottomright'});
+var legend = L.control({position: 'bottomright'});
 
-		legend.onAdd = function (map) {
+legend.onAdd = function (map) {
 
-			var div = L.DomUtil.create('div', 'info legend'),
-				grades = DATA_GRADES,
-				labels = [],
-				from, to;
+	var div = L.DomUtil.create('div', 'info legend'),
+		grades = DATA_GRADES,
+		labels = [],
+		from, to;
 
-			for (var i = 0; i < grades.length; i++) {
-				from = grades[i];
-				to = grades[i + 1];
+	for (var i = 0; i < grades.length; i++) {
+		from = grades[i];
+		to = grades[i + 1];
 
-				labels.push(
-					'<i style="background:' + getColor(from + 1) + '"></i> ' +
-					from + (to ? '&ndash;' + to : '+'));
-			}
+		labels.push(
+			'<i style="background:' + getColor(from + 1) + '"></i> ' +
+			from + (to ? '&ndash;' + to : '+'));
+	}
 
-			div.innerHTML = labels.join('<br>');
-			return div;
-		};
+	div.innerHTML = labels.join('<br>');
+	return div;
+};
 
-		legend.addTo(map);
+legend.addTo(map);

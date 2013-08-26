@@ -42,9 +42,11 @@
 	text-align: right;
 	font-weight: bold;
 	padding-right: 1em;
+	line-height: 1.9em;
 }
 .infobox p {
-	margin: 0.25em 0 0;
+	margin: 0;
+	line-height: 1.9em;
 }
 
 /* Le Temps style scheme */
@@ -60,3 +62,5 @@ h1, h2, h3, h4, h5 {
 	margin-bottom: 12px;
 	margin-top: 0;
 }
+
+h3 { margin-bottom: 2px; }

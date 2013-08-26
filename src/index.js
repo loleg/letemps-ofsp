@@ -12,7 +12,9 @@ var crs = new L.Proj.CRS('EPSG:21781',
 );
 
 // Main map object
-var map = L.map('map').setView([46.6, 8.2], 7.5);
+var MAP_DEFAULT_CENTER = [46.9, 8.2];
+var map = L.map('map')
+		   .setView(MAP_DEFAULT_CENTER, 7.5);
 
 //addGeoAdmin();
 
@@ -109,6 +111,8 @@ function updateValueForCanton(obj, abbr) {
 	var p_visitors 	= (entrants-locals) / entrants;
 
 	$('.name', obj).html( name );
+	$('.de-name', obj).html( 
+		(["VD","TI"].indexOf(abbr) ? 'du' : 'de') + name );
 	$('.patients', obj).html( entrants );
 	$('.hospitals', obj).html( sortants );
 	$('.percent-local', obj).html( parseInt(1000 * p_local) / 10 );
@@ -183,7 +187,7 @@ function zoomToFeature(e) {
 			.indexOf(e.target.feature.properties.abbr);
 	if (s == selectedCanton) {
 		selectedCanton = null;
-		map.setView([46.6, 8.2], 7.5);
+		map.setView(MAP_DEFAULT_CENTER, 7.5);
 	} else {
 		selectedCanton = (selectedCanton == null) ? s : null;
 		if (selectedFeature != null)

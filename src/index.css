@@ -1,8 +1,6 @@
-#map {
-	width: 600px;
-	height: 340px;
-}
+#map { background-color: #faeedd; }
 
+/* Map legend */
 .leaflet-top .info { display: none; }
 .info {
 	padding: 6px 8px;
@@ -44,6 +42,9 @@
 	text-align: right;
 	font-weight: bold;
 	padding-right: 1em;
+}
+.infobox p {
+	margin: 0.25em 0 0;
 }
 
 /* Le Temps style scheme */

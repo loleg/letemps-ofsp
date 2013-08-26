@@ -12,7 +12,7 @@ var crs = new L.Proj.CRS('EPSG:21781',
 );
 
 // Main map object
-var MAP_DEFAULT_CENTER = [46.9, 8.2];
+var MAP_DEFAULT_CENTER = [46.8, 8.2];
 var map = L.map('map')
 		   .setView(MAP_DEFAULT_CENTER, 7.5);
 
@@ -135,14 +135,11 @@ function getIxCanton(abbr) {
 var DATA_GRADES = 
 	[1000, 5000, 25000, 50000, 100000];
 function getColor(d) {
-	return d > DATA_GRADES[7] ? '#800026' :
-	       d > DATA_GRADES[6] ? '#BD0026' :
-	       d > DATA_GRADES[5] ? '#E31A1C' :
-	       d > DATA_GRADES[4] ? '#FC4E2A' :
-	       d > DATA_GRADES[3] ? '#FD8D3C' :
-	       d > DATA_GRADES[2]   ? '#FEB24C' :
-	       d > DATA_GRADES[1]   ? '#FED976' :
-	                  '#FFEDA0';
+	return d > DATA_GRADES[4] ? '#940727' :
+	       d > DATA_GRADES[3] ? '#a52d49' :
+	       d > DATA_GRADES[2] ? '#c57889' :
+	       d > DATA_GRADES[1] ? '#ebd1d8' :
+	                  			'#ffffff';
 }
 
 function style(feature) {

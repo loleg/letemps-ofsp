@@ -180,13 +180,15 @@ function resetHighlight(e) {
 }
 
 function zoomToFeature(e) {
+	var prevCanton = selectedCanton;
+	selectedCanton = null;
+	highlightFeature(e);
 	var s = columndata.Canton
 			.indexOf(e.target.feature.properties.abbr);
-	if (s == selectedCanton) {
-		selectedCanton = null;
+	if (s == prevCanton) {
 		map.setView(MAP_DEFAULT_CENTER, 7.5);
 	} else {
-		selectedCanton = (selectedCanton == null) ? s : null;
+		selectedCanton = s;
 		if (selectedFeature != null)
 			geojson.resetStyle(selectedFeature);
 		selectedFeature = e.target;

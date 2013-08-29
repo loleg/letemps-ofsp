@@ -23,6 +23,7 @@ $.getJSON('data/Entrees_Sorties_Hospitalisations_Suisse_2011.json', function(dat
 	
 	//console.log(data);
 	columndata = data;
+	precalcValues();
 
 	// Load canton borders
 	$.getJSON('data/swiss-cantons.geo.json', 
@@ -62,9 +63,11 @@ info.update = function (props) {
 		this._infobox.hide();
 		return;
 	}
-	// colourful
-	$('.infobox.canton .patients').css('border-left', 
+
+	// colourful box in legend
+	$('.infobox.canton .percent-local').css('border-left', 
 		'2em solid ' + getColor(getValueForCanton(props.abbr)));
+
 	// update legend
 	updateValueForCanton(this._infobox, props.abbr);
 	this._blankbox.hide();
@@ -92,42 +95,47 @@ function initGeoAdmin(map) {
 	}).addTo(map);
 }
 
-function getValueForCanton(abbr) {
-	var ix = getIxCanton(abbr);
-	return columndata.Entrants[ix];
-}
-
-function updateValueForCanton(obj, abbr) {
-
-	var ix = getIxCanton(abbr);
-	var name = columndata.Nom[ix];
-	var entrants = columndata.Entrants[ix];
-	var sortants = columndata.Sortants[ix];
-	var locals   = columndata[abbr][ix];
-
-	var p_local 	= locals / entrants;
-	var p_remote 	= (sortants-locals) / sortants;
-	var p_visitors 	= (entrants-locals) / entrants;
-
-	$('.name', obj).html( name );
-	$('.de-name', obj).html( 
-		(["VD","TI"].indexOf(abbr) ? 'du' : 'de') + name );
-	$('.patients', obj).html( entrants );
-	$('.hospitals', obj).html( sortants );
-	$('.percent-local', obj).html( parseInt(1000 * p_local) / 10 );
-	$('.percent-remote', obj).html( parseInt(1000 * p_remote) / 10 );
-	$('.percent-visitors', obj).html( parseInt(1000 * p_visitors) / 10 );
-
-	return true;
+function precalcValues() {
+	columndata.Summary = {};
+	for (var i = 0; i < columndata.Canton.length; i++) {
+		var abbr = columndata.Canton[i];
+		if (typeof columndata[abbr] == 'undefined') continue;
+		var data = {
+			ix: 		i,
+			name: 		columndata.Nom[i],
+			entrants:	columndata.Entrants[i],
+			sortants:	columndata.Sortants[i],
+			locals:		columndata[abbr][i]
+		};
+		data.p_local = data.locals / data.entrants;
+		data.p_remote = (data.sortants-data.locals) / data.sortants;
+		data.p_visitors = (data.entrants-data.locals) / data.entrants;
+		// set
+		columndata.Summary[abbr] = data;
+	}
 }
 
 function getIxCanton(abbr) {
-	var data = columndata[abbr];
-	if (data === undefined) return null;
-	for (var i = 0; i < columndata.Canton.length; i++) {
-		if (columndata.Canton[i] == abbr) { return i; }
-	}
-	return null;
+	return columndata.Summary[abbr].ix;
+}
+
+function getValueForCanton(abbr) {
+	return columndata.Summary[abbr].entrants;
+}
+
+function updateValueForCanton(obj, abbr) {
+	var data = columndata.Summary[abbr];
+	
+	$('.name', obj).html( data.name );
+	$('.de-name', obj).html( 
+		(["VD","TI"].indexOf(abbr) ? 'du' : 'de') + data.name );
+	$('.patients', obj).html( data.entrants );
+	$('.hospitals', obj).html( data.sortants );
+	$('.percent-local', obj).html( parseInt(1000 * data.p_local) / 10 );
+	$('.percent-remote', obj).html( parseInt(1000 * data.p_remote) / 10 );
+	$('.percent-visitors', obj).html( parseInt(1000 * data.p_visitors) / 10 );
+
+	return true;
 }
 
 // get color depending on population density value

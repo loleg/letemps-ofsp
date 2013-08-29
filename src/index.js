@@ -93,7 +93,6 @@ function initGeoAdmin(map) {
 }
 
 function getValueForCanton(abbr) {
-
 	var ix = getIxCanton(abbr);
 	return columndata.Entrants[ix];
 }
@@ -143,21 +142,27 @@ function getColor(d) {
 }
 
 function style(feature) {
-	var id = feature.properties.abbr;
+	var baseColor =
+		getColor(getValueForCanton(
+			feature.properties.abbr ));
 	return {
 		weight: 2,
 		opacity: 1,
 		color: '#444',
 		//dashArray: '3',
 		fillOpacity: 0.7,
-		fillColor: //'#e99' 
-			getColor(getValueForCanton(id))
+		fillColor: baseColor
 	};
 }
 
 function highlightFeature(e) {
 	if (selectedCanton != null) return;
 	var layer = e.target;
+
+	$.each(geojson.getLayers(), function() {
+		if (this != layer)
+			this.setStyle({ fillColor: '#000' });
+	});
 
 	layer.setStyle({
 		weight: 3,
@@ -175,7 +180,13 @@ function highlightFeature(e) {
 
 function resetHighlight(e) {
 	if (selectedCanton != null) return;
+	
+	$.each(geojson.getLayers(), function() {
+		geojson.resetStyle(this);
+	});
+
 	geojson.resetStyle(e.target);
+
 	info.update();
 }
 

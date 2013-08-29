@@ -66,7 +66,7 @@ info.update = function (props) {
 
 	// colourful box in legend
 	$('.infobox.canton .percent-local').css('border-left', 
-		'2em solid ' + getColor(getValueForCanton(props.abbr)));
+		'2em solid ' + columndata.Summary[props.abbr].color_start );
 
 	// update legend
 	updateValueForCanton(this._infobox, props.abbr);
@@ -107,9 +107,11 @@ function precalcValues() {
 			sortants:	columndata.Sortants[i],
 			locals:		columndata[abbr][i]
 		};
+		data.remote = data.sortants-data.locals;
 		data.p_local = data.locals / data.entrants;
-		data.p_remote = (data.sortants-data.locals) / data.sortants;
+		data.p_remote = data.remote / data.sortants;
 		data.p_visitors = (data.entrants-data.locals) / data.entrants;
+		data.color_start = getColor(data.p_local * 100);
 		// set
 		columndata.Summary[abbr] = data;
 	}
@@ -120,7 +122,7 @@ function getIxCanton(abbr) {
 }
 
 function getValueForCanton(abbr) {
-	return columndata.Summary[abbr].entrants;
+	return columndata.Summary[abbr].p_local * 100;
 }
 
 function updateValueForCanton(obj, abbr) {
@@ -138,11 +140,23 @@ function updateValueForCanton(obj, abbr) {
 	return true;
 }
 
+function getColorCantonCanton(abbrFrom, abbrTo) {
+	return getColor(100 *
+			columndata[abbrFrom][getIxCanton(abbrTo)] / 
+			columndata.Summary[abbrFrom].remote
+		);
+}
+
 // get color depending on population density value
-var DATA_GRADES = 
-	[1000, 5000, 25000, 50000, 100000];
+var DATA_SCALES = [
+		[35, 50, 75, 85, 90, 99],
+		[0, 5, 10, 20, 30, 40]
+	];
+var DATA_GRADES = DATA_SCALES[0];
+
 function getColor(d) {
-	return d > DATA_GRADES[4] ? '#940727' :
+	return d > DATA_GRADES[5] ? '#cc1030' :
+		   d > DATA_GRADES[4] ? '#940727' :
 	       d > DATA_GRADES[3] ? '#a52d49' :
 	       d > DATA_GRADES[2] ? '#c57889' :
 	       d > DATA_GRADES[1] ? '#ebd1d8' :
@@ -167,17 +181,20 @@ function highlightFeature(e) {
 	if (selectedCanton != null) return;
 	var layer = e.target;
 
+	switchScale(1);
+
+	// others
 	$.each(geojson.getLayers(), function() {
-		if (this != layer)
-			this.setStyle({ fillColor: '#000' });
+		if (layer == this) return;
+		this.setStyle({ 
+			fillColor: getColorCantonCanton(
+				layer.feature.properties.abbr, 
+				this.feature.properties.abbr ) 
+		});
 	});
 
-	layer.setStyle({
-		weight: 3,
-		color: '#fff',
-		dashArray: '',
-		fillOpacity: 0.7
-	});
+	// this
+	layer.setStyle({ color: '#fff', fillColor: getColor(100) });
 
 	if (!L.Browser.ie && !L.Browser.opera) {
 		layer.bringToFront();
@@ -188,6 +205,8 @@ function highlightFeature(e) {
 
 function resetHighlight(e) {
 	if (selectedCanton != null) return;
+
+	switchScale(0);
 	
 	$.each(geojson.getLayers(), function() {
 		geojson.resetStyle(this);
@@ -223,26 +242,43 @@ function onEachFeature(feature, layer) {
 	});
 }
 
+function switchScale(ds) {
+	DATA_GRADES = DATA_SCALES[ds];
+	$('.info.legend .grade').hide();
+	$('.info.legend .scale-' + ds).show();
+}
+
 var legend = L.control({position: 'bottomright'});
 
 legend.onAdd = function (map) {
 
-	var div = L.DomUtil.create('div', 'info legend'),
-		grades = DATA_GRADES,
-		labels = [],
-		from, to;
+	var div = L.DomUtil.create('div', 'info legend');
+	var scales = "<h3>%</h3>";
 
-	for (var i = 0; i < grades.length; i++) {
-		from = grades[i];
-		to = grades[i + 1];
+	for (var ds = 0; ds < DATA_SCALES.length; ds++) {
 
-		labels.push(
-			'<i style="background:' + getColor(from + 1) + '"></i> ' +
-			from + (to ? '&ndash;' + to : '+'));
+		DATA_GRADES = DATA_SCALES[ds];
+		var grades = DATA_GRADES,
+			labels = [],
+			from, to;
+
+		for (var i = 0; i < grades.length; i++) {
+			from = grades[i];
+			to = grades[i + 1];
+
+			labels.push(
+				'<i style="background:' + getColor(from + 1) + '"></i> ' +
+				from + (to ? '&ndash;' + to : '+'));
+		}
+
+		scales += '<div class="grade scale-' + ds + '">'
+				+ labels.join('<br>') + '</div>';
+
 	}
 
-	div.innerHTML = labels.join('<br>');
+	div.innerHTML = scales;
 	return div;
 };
 
 legend.addTo(map);
+switchScale(0);

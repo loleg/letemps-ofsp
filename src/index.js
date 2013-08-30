@@ -94,11 +94,26 @@ function initGeoAdmin(map) {
 	}).addTo(map);
 }
 
+var barchart, barchart_options = {
+		scaleLineColor : "rgba(0,0,0,1)",
+		scaleFontFamily : "'Lucida Grande','Lucida Sans Unicode','Arial','Verdana','sans-serif'",
+		scaleLabel : "<%=value%>%",	
+		scaleFontSize : 11,
+		scaleFontColor : "#999",
+		scaleShowGridLines : false,
+		animation : false
+};
+
+function initChart() {
+	var ctx = $('#barchart').get(0).getContext("2d");
+	barchart = new Chart(ctx);
+}
+
 function precalcValues() {
 	columndata.Summary = {};
 	for (var i = 0; i < columndata.Canton.length; i++) {
 		var abbr = columndata.Canton[i];
-		if (typeof columndata[abbr] == 'undefined') continue;
+		if (abbr.length > 2) continue;
 		var data = {
 			ix: 		i,
 			name: 		columndata.Nom[i],
@@ -124,6 +139,16 @@ function getValueForCanton(abbr) {
 	return columndata.Summary[abbr].p_local * 100;
 }
 
+function addCommas(str) {
+    var amount = (new String(str)).split("").reverse(), output = "";
+    $.each(amount, function(i) {
+        output = this + output;
+        if ((i+1) % 3 == 0 && (amount.length-1) !== i)
+        	output = ' ' + output;
+    });
+    return output;
+}
+
 function updateValueForCanton(obj, abbr) {
 	var data = columndata.Summary[abbr];
 
@@ -132,8 +157,8 @@ function updateValueForCanton(obj, abbr) {
 	$('.name', obj).html( data.name );
 	$('.de-name', obj).html( 
 		(["VD","TI"].indexOf(abbr) ? 'du' : 'de') + data.name );
-	$('.patients', obj).html( data.entrants );
-	$('.hospitals', obj).html( data.sortants );
+	$('.patients', obj).html( addCommas(data.entrants) );
+	$('.hospitals', obj).html( addCommas(data.sortants) );
 	$('.percent-local', obj).html( parseInt(1000 * data.p_local) / 10 );
 	$('.percent-remote', obj).html( parseInt(1000 * data.p_remote) / 10 );
 	$('.percent-visitors', obj).html( parseInt(1000 * data.p_visitors) / 10 );
@@ -145,6 +170,36 @@ function updateValueForCanton(obj, abbr) {
 		getColor(100 * data.p_remote) );
 	$('.box-percent-visitors', obj).css('border',
 		'2px solid ' + getColor(100 * data.p_visitors) );
+
+	// update chart
+	var barchart_data = {
+			labels: [],
+			datasets: [{ 
+				data: [], fillColor: "#cc1030", strokeColor : "#ffffff",
+			},{
+				data: [], fillColor: "#ffffff", strokeColor : "#cc1030"
+			}]
+		};
+	var cantonsorted = 
+		columndata.Canton
+			.slice(0, columndata.Canton.length-1)
+			.sort(function(a,b) {
+				return getCantonFromTo(abbr, b) - getCantonFromTo(abbr, a);
+			});
+	$.each(cantonsorted, function(i) {
+		if ( this == abbr ) return;
+		var fromto = getCantonFromTo(abbr, this),
+			tofrom = getCantonToFrom(abbr, this);
+		fromto = (fromto < .1) ? 0 : fromto;
+		tofrom = (tofrom < .1) ? 0 : tofrom;
+		if ( fromto + tofrom < .1 ) return;
+		barchart_data.labels.push( this );
+		barchart_data.datasets[0].data.push( fromto * 100 );
+		barchart_data.datasets[1].data.push( tofrom * 100 );
+	});
+	
+	//console.log(barchart_data);
+	barchart.Bar(barchart_data, barchart_options);
 
 	return true;
 }
@@ -301,4 +356,7 @@ legend.onAdd = function (map) {
 };
 
 legend.addTo(map);
+
+initChart();
+
 switchScale(0);

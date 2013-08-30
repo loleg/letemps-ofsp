@@ -25,8 +25,11 @@
 
 		<span class="colorbox box-percent-local"></span>
 		<div class="percent-local"></div>
-		<p>% (<span class="hospitals"></span>) 
-		des hospitalisés qui sont domiciliés dans le canton <span class="name-de"></span></p>
+		<p>% 
+		(<span class="hospitals"></span>) 
+		des hospitalisés 
+		(<span class="patients"></span>)
+		qui sont domiciliés dans le canton <span class="name-de"></span></p>
 
 		<span class="colorbox box-percent-remote"></span>
 		<div class="percent-remote"></div>
@@ -35,9 +38,8 @@
 		<span class="colorbox box-percent-visitors"></span>
 		<div class="percent-visitors"></div>
 		<p>% des patients venus d’ailleurs se faire hospitaliser dans le canton</p>
-		
-		<div class="patients"></div>
-		<p>Total des hospitalisations de patients habitant le canton</p>
+
+		<canvas id="barchart" width="600" height="100"></canvas>
 	</div>
 
 	<script src="lib/leaflet-0.6.4/leaflet.js"></script>
@@ -45,6 +47,7 @@
 	<script src="lib/leaflet-0.6.4/proj4leaflet.js"></script>
 	<script src="lib/jquery-1.10.2.min.js"></script>
 	<script src="lib/jquery.csv-0.71.min.js"></script>
+	<script src="lib/Chart.min.js"></script>
 	<script src="src/index.js"></script>
 </body>
 </html>

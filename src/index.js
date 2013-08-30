@@ -157,8 +157,8 @@ function updateValueForCanton(obj, abbr) {
 	$('.name', obj).html( data.name );
 	$('.de-name', obj).html( 
 		(["VD","TI"].indexOf(abbr) ? 'du' : 'de') + data.name );
+	$('.local', obj).html( addCommas(data.locals) );
 	$('.patients', obj).html( addCommas(data.entrants) );
-	$('.hospitals', obj).html( addCommas(data.sortants) );
 	$('.percent-local', obj).html( parseInt(1000 * data.p_local) / 10 );
 	$('.percent-remote', obj).html( parseInt(1000 * data.p_remote) / 10 );
 	$('.percent-visitors', obj).html( parseInt(1000 * data.p_visitors) / 10 );

@@ -190,8 +190,6 @@ function updateValueForCanton(obj, abbr) {
 		if ( this == abbr ) return;
 		var fromto = getCantonFromTo(abbr, this),
 			tofrom = getCantonToFrom(abbr, this);
-		fromto = (fromto < .1) ? 0 : fromto;
-		tofrom = (tofrom < .1) ? 0 : tofrom;
 		if ( fromto + tofrom < .1 ) return;
 		barchart_data.labels.push( this );
 		barchart_data.datasets[0].data.push( fromto * 100 );

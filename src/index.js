@@ -52,7 +52,10 @@ info.onAdd = function (map) {
 };
 
 info.update = function (props) {
-	$('.infobox.canton div').css('border-left', '2em solid white');
+	
+	// clear selection
+	$('.infobox.canton .colorbox').css({ 'border':'2px solid white', 'background':'#fff' });
+
 	if (selectedCanton != null) {
 		props = {
 			abbr: columndata.Canton[selectedCanton],
@@ -63,10 +66,6 @@ info.update = function (props) {
 		this._infobox.hide();
 		return;
 	}
-
-	// colourful box in legend
-	$('.infobox.canton .percent-local').css('border-left', 
-		'2em solid ' + columndata.Summary[props.abbr].color_start );
 
 	// update legend
 	updateValueForCanton(this._infobox, props.abbr);
@@ -127,6 +126,8 @@ function getValueForCanton(abbr) {
 
 function updateValueForCanton(obj, abbr) {
 	var data = columndata.Summary[abbr];
+
+	// update numbers
 	
 	$('.name', obj).html( data.name );
 	$('.de-name', obj).html( 
@@ -137,14 +138,25 @@ function updateValueForCanton(obj, abbr) {
 	$('.percent-remote', obj).html( parseInt(1000 * data.p_remote) / 10 );
 	$('.percent-visitors', obj).html( parseInt(1000 * data.p_visitors) / 10 );
 
+	// update colors
+
+	$('.box-percent-local', obj).css('background-color', COLOR_HOVER); 
+	$('.box-percent-remote', obj).css('background-color', 
+		getColor(100 * data.p_remote) );
+	$('.box-percent-visitors', obj).css('border',
+		'2px solid ' + getColor(100 * data.p_visitors) );
+
 	return true;
 }
 
-function getColorCantonCanton(abbrFrom, abbrTo) {
-	return getColor(100 *
-			columndata[abbrFrom][getIxCanton(abbrTo)] / 
-			columndata.Summary[abbrFrom].remote
-		);
+function getCantonFromTo(abbrFrom, abbrTo) {
+	return columndata[abbrFrom][getIxCanton(abbrTo)] / 
+		   columndata.Summary[abbrFrom].remote;
+}
+
+function getCantonToFrom(abbrFrom, abbrTo) {
+	return columndata[abbrTo][getIxCanton(abbrFrom)] / 
+		   columndata.Summary[abbrTo].remote;
 }
 
 // get color depending on population density value
@@ -153,6 +165,7 @@ var DATA_SCALES = [
 		[0, 5, 10, 20, 30, 40]
 	];
 var DATA_GRADES = DATA_SCALES[0];
+var COLOR_HOVER = "#fe9";
 
 function getColor(d) {
 	return d > DATA_GRADES[5] ? '#cc1030' :
@@ -165,8 +178,9 @@ function getColor(d) {
 
 function style(feature) {
 	var baseColor =
-		getColor(getValueForCanton(
-			feature.properties.abbr ));
+			getColor( 
+				getValueForCanton( 
+					feature.properties.abbr ));
 	return {
 		weight: 2,
 		opacity: 1,
@@ -186,15 +200,21 @@ function highlightFeature(e) {
 	// others
 	$.each(geojson.getLayers(), function() {
 		if (layer == this) return;
+		var fromto = getCantonFromTo(
+						layer.feature.properties.abbr, 
+						this.feature.properties.abbr ),
+			tofrom = getCantonToFrom(
+						layer.feature.properties.abbr, 
+						this.feature.properties.abbr );
 		this.setStyle({ 
-			fillColor: getColorCantonCanton(
-				layer.feature.properties.abbr, 
-				this.feature.properties.abbr ) 
+			fillColor: 	getColor(100 * fromto),
+			color: 		getColor(100 * tofrom),
+			weight: 	(tofrom < 0.11) ? 0 : 2
 		});
 	});
 
 	// this
-	layer.setStyle({ color: '#fff', fillColor: getColor(100) });
+	layer.setStyle({ color: '#fff', fillColor: COLOR_HOVER });
 
 	if (!L.Browser.ie && !L.Browser.opera) {
 		layer.bringToFront();

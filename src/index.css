@@ -23,6 +23,7 @@
 	width: 18px;
 	height: 18px;
 	float: left;
+	clear: both;
 	margin-right: 8px;
 	opacity: 0.7;
 }
@@ -45,6 +46,11 @@
 .infobox p, .infobox div {
 	margin: 0;
 	line-height: 1.7em;
+}
+.infobox .colorbox {
+	float: left;
+	display: inline-block;
+	width: 1em; height: 1em;
 }
 
 /* Le Temps style scheme */
